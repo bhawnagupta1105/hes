@@ -1,0 +1,137 @@
+import React, { useState } from "react";
+import logo from "../assets/logo.png";
+
+const Navbar = () => {
+  const [openDropDown, setIsOpenDropDown] = useState(null);
+  const [isDropDownOpen, setIsDropDownOpen] = useState(false);
+
+  const opentoggleDropDown = (id) => {
+    setIsOpenDropDown((open) => (open === id ? null : id));
+  };
+  const toggleDropDown = () => {
+    setIsDropDownOpen((open) => !open);
+  };
+
+  const dropdowns = {
+    Tools: ["Read Service","Connect/Disconnect","Bulk Import","Bulk Export","Custom Configuration Service"],
+    Analytics: ["View Meter Data"],
+    Reports: ["Meter Communication Report","Communication Reports","Meter Data Reports","Consumption Reports","Master Data Reports","Condition Monitoring Reports","Miscellaneous Reports"],
+    Diagnostics: ["Ping", "Meter Data Files"],
+    Samarth: ["Samarth Users", "Samarth Reports", "App Configuration"],
+  };
+
+  return (
+    <div
+      className="flex  text-white items-center px-4 text-lg"
+      style={{
+        background: "linear-gradient(to right, #000428, #004e92, #000428)",
+      }}
+    >
+      {/* Logo */}
+      <div className=" flex ">
+        <img className="h-12 w-25 mt-2" src={logo} alt="Logo" />
+        <p class="p-2 m-2 text-2xl">Genus Power Infrastructures Ltd.</p>
+      </div>
+
+      {/* Navigation Links */}
+      <div className="flex ml-6 space-x-4">
+        <div>
+          <button>Dashboard</button>
+        </div>
+        {Object.entries(dropdowns).map(([key, items]) => (
+          <div key={key}>
+            <button onClick={() => opentoggleDropDown(key)}>{key}</button>
+            {openDropDown === key && (
+              <div class="absolute mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-hidden">
+                <div class="py-1">
+                  {items.map((item, idx) => (
+                    <a
+                      key={idx}
+                      class="block px-4 py-2 text-sm text-gray-700"
+                      role="menuitem"
+                      tabindex="-1"
+                      id="menu-item-0"
+                    >
+                      {item}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Right Side Icons */}
+      <div className="ml-auto flex items-center space-x-4">
+        {/* Notification Button */}
+        <button
+          type="button"
+          className="relative rounded-full bg-gray-800 p-1 text-gray-400 hover:text-white focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800"
+        >
+          <span className="sr-only">View notifications</span>
+          <svg
+            className="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth="1.5"
+            stroke="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022 23.848 23.848 0 005.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"
+            />
+          </svg>
+        </button>
+
+        {/* User Menu */}
+        <div className="relative p-2">
+          <button
+            type="button"
+            className="flex rounded-full bg-gray-800 text-sm focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800"
+            id="user-menu-button"
+            onClick={toggleDropDown}
+          >
+            <span className="sr-only">Open user menu</span>
+            <img
+              className="h-8 w-8 rounded-full"
+              src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e"
+              alt=""
+            />
+          </button>
+
+          {/* Dropdown Menu */}
+          {isDropDownOpen && (
+            <div className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white text-black py-1 shadow-lg ring-1 ring-black/5">
+              <a
+                href="#"
+                className="block px-4 py-2 text-sm hover:bg-gray-100"
+                role="menuitem"
+              >
+                Your Profile
+              </a>
+              <a
+                href="#"
+                className="block px-4 py-2 text-sm hover:bg-gray-100"
+                role="menuitem"
+              >
+                Settings
+              </a>
+              <a
+                href="#"
+                className="block px-4 py-2 text-sm hover:bg-gray-100"
+                role="menuitem"
+              >
+                Sign out
+              </a>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Navbar;
