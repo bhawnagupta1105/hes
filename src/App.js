@@ -7,6 +7,7 @@ import './index.css'
 import MyBar from './Dashboard/Charts';
 import Dashboard from './Dashboard/Dashboard';
 import Shimmer from './Shimmer';
+import Footer from './Footer/Footer';
 //import { Dashboard } from '@mui/icons-material';
 //import RadioButton from './Dashboard/RadioButton';
 //import { loadConfig } from '../src/config';
@@ -31,10 +32,13 @@ function App() {
   }
 
   return (
-    <div className="custom-scrollbar">
+    <div className="app-container">
       <Navbar />
-      <Dashboard></Dashboard>
-      <MyBar data></MyBar>
+      <main className="main-content">
+        <Dashboard></Dashboard>
+        <MyBar data></MyBar>
+      </main>
+      <Footer />
     </div>
   );
 }

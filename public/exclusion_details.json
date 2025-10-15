@@ -1,0 +1,67 @@
+{
+  "title": "Exclusion Categories and Definitions and Deviation Thresholds",
+  "introduction": "The following exclusions are applied while evaluating the performance with respect to the defined SLA metrics. This is to ensure that only meters with reliable and consistent operational conditions are considered in SLA calculations.",
+  "exclusions": [
+    {
+      "category": "No Supply",
+      "definition": "This exclusion category includes meters that did not have electrical supply during the SLA monitoring window. Identification is based on Power Events recorded in the meter. Such meters are excluded since they lacked sufficient power supply to meet the SLA requirements.",
+      "example": "SLA-1 | For Scheduled Interval Data Readings within 8 hours, if any meter has recorded a supply failure event occurring between 00:05 and 07:30, it is classified under the 'No Supply' exclusion.",
+      "note":"Such meters are excluded from SLA calculations since meter didn’t have the fair duration of power supply for transmitting the data which is required for meeting the SLA."
+    },
+    {
+      "category": "Inconsistent Supply",
+      "definition": "This exclusion applies to meters that had intermittent or inadequate power supply during the SLA monitoring window, preventing consistent data communication. Such cases are derived from Load Profile data.",
+      "example": "SLA-1 | For Scheduled Interval Data Readings within 8 hours, if a meter records voltage below 150 volts in more than 14 out of 16 blocks (till 08:00), it is categorized under this exclusion.",
+      "note": "These meters are excluded because unstable supply conditions prevent reliable data communication."
+    },
+    {
+      "category": "Last Gasp and Stopped Communication",
+      "definition": "This exclusion includes meters that sent a 'Last Gasp' signal (indicating power loss) and subsequently stopped communicating for the remainder of the monitoring period.",
+      "example": "Meters that report a Last Gasp event and do not re-establish communication until the end of the month are excluded from SLA evaluation.",
+      "note": "These meters are considered non-operational for the rest of the monitoring cycle."
+    },
+    {
+      "category": "TD/PD and Field Visit",
+      "definition": "This exclusion covers meters identified as Temporarily Disconnected (TD), Permanently Disconnected (PD), or those having connection-related issues discovered during field inspections.",
+      "example": "Such cases are captured during Operations & Maintenance activities performed by field teams.",
+      "note": "These meters are physically disconnected or faulty and are excluded from SLA evaluation."
+    },
+    {
+      "category": "Meter Days",
+      "definition": "‘Meter Days’ is a derived metric representing the total monitoring exposure of meters for a given SLA.",
+      "formula": "Meter Days = Number of Meters × Number of Monitoring Days",
+      "examples": [
+        "For Load Profile and Daily Profile SLAs – the monitoring is daily, so the number of days equals the total days in the month.",
+        "For Billing SLAs – billing occurs once a month, so the monitoring period is considered as 1 day."
+      ],
+      "note": "All exclusions are measured in terms of Meter Days corresponding to the specific SLA metric."
+    }
+  ],
+  "deviation_thresholds": [
+    {
+      "sla_metric": "SLA-1 | Scheduled Interval data readings within 8 hours",
+      "no_supply": "00:05 to 07:30",
+      "inconsistent_supply": "More than 14 blocks out of 16"
+    },
+    {
+      "sla_metric": "SLA-2 | Scheduled Interval data readings within 12 hours",
+      "no_supply": "00:05 to 11:30",
+      "inconsistent_supply": "More than 22 blocks out of 24"
+    },
+    {
+      "sla_metric": "SLA-3 | Scheduled Interval data readings within 24 hours",
+      "no_supply": "00:05 to 23:30",
+      "inconsistent_supply": "More than 45 blocks out of 48"
+    },
+    {
+      "sla_metric": "SLA-41 | Scheduled billing profile data for the bill period within 72 hours",
+      "no_supply": "01-MM-YY 00:05 to 03-MM-YY 23:30",
+      "inconsistent_supply": "More than 135 blocks out of 144"
+    },
+    {
+      "sla_metric": "SLA-42 | Scheduled billing profile data for the bill period within 168 hours",
+      "no_supply": "01-MM-YY 00:05 to 07-MM-YY 23:30",
+      "inconsistent_supply": "More than 315 blocks out of 336"
+    }
+  ]
+}

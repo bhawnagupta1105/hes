@@ -160,7 +160,7 @@ export const getDownloadDetailedExclusionReport = async(invoiceNumber,satName,ex
             `${API_BASE_URL}/Report/DownloadDetailedExclusionReport`,
             {},
             {
-                params: { invoiceNumber }
+                params: { invoiceNumber,satName,exclusion }
             }
         );
         return response.data;

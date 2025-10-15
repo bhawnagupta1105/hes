@@ -85,7 +85,7 @@ export const getCardTableData = async (page, pageSize, cardTitle = "") => {
 };
 
 export const getchartdata = async() =>{
-    debugger
+    await ensureApiLoaded();
     const requestBody = {
     meterId: "",
     fromDate: "",
@@ -110,6 +110,17 @@ export const getchartdata = async() =>{
         headers: { "Content-Type": "application/json" }
       });
       console.log(response);
+        return response.data;
+    }catch(error){
+        console.error("Error Fetching data:",error);
+        throw error;
+    }
+};
+
+export const getapiversion = async() =>{
+    await ensureApiLoaded();
+    try{
+        const response = await axios.get(`${API_BASE_URL}/Dashboard/GetAppVersion`);
         return response.data;
     }catch(error){
         console.error("Error Fetching data:",error);

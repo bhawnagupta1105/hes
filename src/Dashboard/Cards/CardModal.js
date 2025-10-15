@@ -2,7 +2,7 @@ import { useState,useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import InvoiceForm from "../InvoiceForm/Invoice";
 import { PlusIcon } from "@heroicons/react/24/solid";
-
+import { loadConfig } from "../../config";
 const CardModal = ({ show, onClose, title, children, onInvoiceAdded }) => {
   // Prevent background scroll and handle Escape key
   useEffect(() => {
@@ -15,14 +15,18 @@ const CardModal = ({ show, onClose, title, children, onInvoiceAdded }) => {
   const [showForm, setShowForm] = useState(false);
   const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
   const [password, setPassword] = useState("");
-  const CORRECT_PASSWORD = "admin123"; // Change this to your desired password
+  //const CORRECT_PASSWORD = "admin123"; // Change this to your desired password
+  const [config, setConfig] = useState({});
+    useEffect(() => {
+    loadConfig().then(setConfig).catch(console.error);
+  }, []);
 
   const handleAddClick = () => {
     setShowPasswordPrompt(true);
   };
 
   const handlePasswordSubmit = () => {
-    if (password === CORRECT_PASSWORD) {
+    if (password === config.CONFIG_PASSWORD) {
       setShowPasswordPrompt(false);
       setShowForm(true);
       setPassword("");
@@ -62,7 +66,7 @@ const CardModal = ({ show, onClose, title, children, onInvoiceAdded }) => {
 <div className="flex items-center justify-between mb-4 px-8 mr-1">
   <h2 className="text-xl font-bold">{title} Details</h2>
   
-  {!showForm && (
+  {!showForm && title?.toLowerCase().includes("invoice count") && (
     <button
       onClick={handleAddClick}
       className="bg-green-500 text-white px-3 py-1 rounded-lg hover:bg-green-600 transition flex items-center gap-1 "

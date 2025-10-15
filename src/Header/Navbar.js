@@ -1,9 +1,15 @@
-import React, { useState } from "react";
-import logo from "../assets/logo.png";
+import React, { useState, useEffect } from "react";
+//import logo from "../..public/logo.png";
+import { loadConfig } from "../config.js";
 
 const Navbar = () => {
   const [openDropDown, setIsOpenDropDown] = useState(null);
   const [isDropDownOpen, setIsDropDownOpen] = useState(false);
+  const [config, setConfig] = useState({});
+
+  useEffect(() => {
+    loadConfig().then(setConfig).catch(console.error);
+  }, []);
 
   const opentoggleDropDown = (id) => {
     setIsOpenDropDown((open) => (open === id ? null : id));
@@ -29,8 +35,8 @@ const Navbar = () => {
     >
       {/* Logo */}
       <div className=" flex ">
-        <img className="h-12 w-25 mt-2" src={logo} alt="Logo" />
-        <p className="p-2 m-2 text-2xl">Genus Power Infrastructures Ltd.</p>
+        <img className="h-12 w-25 mt-2" src="/logo.png" alt="Logo" />
+        <p className="p-2 m-2  text-2xl">{config.UtilityHeader}</p>
       </div>
 
       {/* Navigation Links */}

@@ -11,6 +11,7 @@
     getExclusionSummaryDetails,
     getSLASummaryDetails,
     getdownloadSATWiseHierarchy,
+    getDivisionWiseSLASummaryDetails,
   } from "../../ApiServices/reportapi";
 
   // Utility function to sanitize text content
@@ -36,6 +37,7 @@
     const [billsSLAData, setBillsSLAData] = React.useState([]);
     const [exclusionSLAData, setExclusionSLAData] = React.useState([]);
     const [slaSummaryData, setSlaSummaryData] = React.useState([]);
+    const [divisionWiseSLASummaryDetails, setDivisionWiseSLASummaryDetails] = React.useState([]);
     const [downloadSATWiseHierarchy, setDownloadSATWiseHierarchy] = React.useState([]);
 
     const [invoiceSummary, setInvoiceSummary] = React.useState({});
@@ -95,6 +97,37 @@
         id: index + 1 + page * pageSize,
         ...row,
       })), [page, pageSize]);
+
+    const downloadSatBifurcationData = React.useCallback(async (satName) => {
+      try {
+        setLoading(true);
+        const response = await getdownloadSATWiseHierarchy(satName);
+        const columns = response.columns || Object.keys(response.rows?.[0] || {}).map((f) => ({ field: f }));
+        const rows = response.rows || [];
+
+        const convertToCSV = (columns, rows) => {
+          const header = columns.map(col => col.field).join(",");
+          const data = rows.map(row =>
+            columns.map(col => `"${(row[col.field] ?? "").toString().replace(/"/g, '""')}"`).join(",")
+          );
+          return [header, ...data].join("\n");
+        };
+
+        const csvContent = convertToCSV(columns, rows);
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.setAttribute("download", `${satName}_report.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } catch (error) {
+        console.error("Failed to download SAT bifurcation data:", error);
+        alert("Failed to download SAT bifurcation data. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    }, []);
 
 //     const fetchsatdatatable = async (invoice_number) => {
 //       setLoading(true);
@@ -167,6 +200,7 @@
           billsResponse,
           exclusionResponse,
           slaSummaryResponse,
+          divisionWiseSLASummaryResponse,
         ] = await Promise.all([
           getSATBifurcationDetails(invoiceNumber),
           getLoadSLADetails(invoiceNumber),
@@ -174,6 +208,7 @@
           getBillSLADetails(invoiceNumber),
           getExclusionSummaryDetails(invoiceNumber),
           getSLASummaryDetails(invoiceNumber),
+          getDivisionWiseSLASummaryDetails(invoiceNumber)
         ]);
 
         const createDataStructure = (response) => ({
@@ -187,6 +222,7 @@
         setBillsSLAData(createDataStructure(billsResponse));
         setExclusionSLAData(createDataStructure(exclusionResponse));
         setSlaSummaryData(createDataStructure(slaSummaryResponse));
+        setDivisionWiseSLASummaryDetails(createDataStructure(divisionWiseSLASummaryResponse))
 
         setInvoiceSummary({
           invoice_number: satResponse?.invoice_number,
@@ -217,25 +253,40 @@
           index === self.findIndex((c) => c.field === col.field)
         );
 
-        const mappedColumns = uniqueColumns.map((col) => ({
-          field: col.field,
-          headerName: col.title,
-          flex: 1,
-          minWidth: 150,
-          sortable: col.sortable ?? true,
-          hide: window.innerWidth < 600 && col.field !== "Invoice Number",
-          clickable: col.clickable ?? false,
-          renderCell: (params) =>
-            params.colDef.clickable ? (
-              <span style={{ color: "#1976d2", cursor: "pointer" }} onClick={() => handleCellClick(params)}>
-                {sanitizeText(params.value)}
-              </span>
-            ) : (
-              <span style={{ whiteSpace: "normal", wordBreak: "break-word" }}>
-                {sanitizeText(params.value)}
-              </span>
-            ),
-        }));
+        const mappedColumns = uniqueColumns.map((col) => {
+          const isOpexClaimed = cardTitle?.toLowerCase().includes("opex claimed");
+          const isSatNameClickable = isOpexClaimed && (col.field === "SAT Name" || col.field === "satName" || col.field === "sat_name");
+          const isClickable = col.clickable || isSatNameClickable;
+          const isCategoryColumn = col.field === "Category" || col.field === "category";
+          
+          return {
+            field: col.field,
+            headerName: col.title,
+            flex: 1,
+            minWidth: isCategoryColumn ? 200 : 150,
+            sortable: col.sortable ?? true,
+            hide: window.innerWidth < 600 && col.field !== "Invoice Number",
+            clickable: isClickable,
+            renderCell: (params) =>
+              isClickable ? (
+                <span style={{ color: "#1976d2", cursor: "pointer" }} onClick={() => handleCellClick(params)}>
+                  {sanitizeText(params.value)}
+                </span>
+              ) : (
+                <span style={{ 
+                  whiteSpace: "normal", 
+                  wordBreak: "break-word",
+                  ...(isCategoryColumn && { 
+                    display: "block",
+                    lineHeight: "1.4",
+                    padding: "8px 4px"
+                  })
+                }}>
+                  {sanitizeText(params.value)}
+                </span>
+              ),
+          };
+        });
 
         const mappedRows = addIds(apiData.rows);
 
@@ -269,6 +320,22 @@
     const handleCellClick = React.useCallback(async (params) => {
       if (!params.colDef.clickable) return;
 
+      const isOpexClaimed = cardTitle?.toLowerCase().includes("opex claimed");
+      const isSatNameField = params.field === "SAT Name" || params.field === "satName" || params.field === "sat_name";
+      
+      // Handle SAT Name click for opex claimed tables
+      if (isOpexClaimed && isSatNameField) {
+        const satName = params.value;
+        if (!satName) {
+          console.error("SAT Name not found in cell:", params);
+          alert("SAT Name not found. Please try again.");
+          return;
+        }
+        await downloadSatBifurcationData(satName);
+        return;
+      }
+
+      // Handle regular invoice number clicks
       const invoiceNumber =
         params.row["Invoice Number"] ??
         params.row["invoice_number"] ??
@@ -282,7 +349,7 @@
       }
 
       await fetchReportData(invoiceNumber);
-    }, [fetchReportData]);
+    }, [fetchReportData, downloadSatBifurcationData, cardTitle]);
 
     return (
       <div style={{ display: "flex", flexDirection: "column", height: "100vh", padding: 10 }}>
@@ -424,6 +491,7 @@
             exclusionSLAData={exclusionSLAData}
             slaSummaryData={slaSummaryData}
             downloadSATWiseHierarchy={downloadSATWiseHierarchy}
+            divisionWiseSLASummaryDetails={divisionWiseSLASummaryDetails}
             onClose={() => setIsReportOpen(false)}
           />
         )}
